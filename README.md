@@ -35,8 +35,10 @@ test:
   note: this is a comment
   note: but this comment will overwrite the previous one, due to duplicate key names
 ```
+# Testing
+We have provide a `test.yml` file, that that can be used to test out the function. It contains some comments, objects, lists, numerical arrays, and matrices to show what can be stored. 
 
-# TO DO
+# To Do
 In current form, the following components are still missing:
 - Possibility of inline blocks like
     ```yaml
