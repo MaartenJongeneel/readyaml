@@ -1,85 +1,245 @@
-function results = ReadYaml(filePath)
-% Lloyd Russell 2017
-% Simple little function to read simple little YAML format parameter files
-% Adapted by Maarten Jongeneel May 2021 to allow for arrays
+function results = readyaml(filePath)
+% readyaml() reads out YAML files and writes the data to a struct
+%
+% Syntax:  PlotFrame('myyamlfile.yaml')
+%
+% Inputs:
+%    filepath        - string or char that gives the path to the yaml file
+%
+% Outputs:
+%    results         - resulting struct from the yaml file
+% 
+% Author: Maarten J. Jongeneel, Ph.D. researcher
+% Eindhoven University of Technology (TU/e), Mechanical Engineering Dept.
+% email address: info@maartenjongeneel.nl  
+% October 2023; Last revision: 08-October-2023
+%--------------------------------------------------------------------------
 
-% read file line by line
+%We open the file and read out the yaml file to a data variable.
 fid = fopen(filePath, 'r');
-data = textscan(fid, '%s', 'delimiter', '\n', 'whitespace', '');
+try
+    data = textscan(fid, '%s', 'delimiter', '\n', 'whitespace', '');
+catch
+    error(append("Cannot read the YAML file in path: ",filePath,", please check if the file exist and the path is correct."));
+end
 fclose(fid);
 
-% remove empty lines
+% remove empyy lines
 data = deblank(data{1});
+for ii = 1:length(data)
+    %Comments begin with the number sign (#), can start anywhere on a line
+    %and continue until the end of the line we remove them from the data
+    if startsWith(strtrim(data{ii}),'#') 
+        data{ii} = [];
+    end
+end
+
 data(cellfun('isempty', data)) = [];
+key = "data";
+data{end+1}=''; %Add empty string to be able to write last row
 
-% prepare final results structure
-results = [];
+%Here, we build the structlvl array which tells us the levels of a struct
+for jj = 1:length(data); test{jj,1}=strrep(data{jj},'-',' ');end
+for jj=1:length(data); structlvl(jj) = (length(test{jj})-length(strtrim(test{jj})))/2; end
 
-%boolean to check what level you are in
-instruct = false;
-
-% parse the contents (line by line)
-i=0;
-while i < numel(data)
-    i = i+1;
-    % extract this line
-    thisLine = data{i};
-    
-    % ignore if this line is a comment
-    if strcmpi(thisLine(1), '#')
-        continue
-    end   
-    
-    if ~instruct
-        % find the seperator between key and value
-        sepIndex = find(thisLine==':', 1, 'first');
-        
-        % get the key name (remove whitespace)
-        key = strtrim(thisLine(1:sepIndex-1));
-        
-        % get the value, ignoring any comments (remove whitespace)
-        value = strsplit(thisLine(sepIndex+1:end), '#');
-        value = strtrim(value{1});
+dit = [0 diff(structlvl)];
+ii =1;
+while ~isempty(find(dit(ii:end)>1,1,'first')+ii-1) %as long as I can find an indentation that is bigger than 1
+    strindex = find(dit(ii:end)>1,1,'first')+ii-1;
+    endindex = strindex+find(structlvl(strindex:end)<=structlvl(strindex-1),1,"first")-2;
+    index = (strindex:endindex);
+    structlvl(index) = structlvl(index)-1;
+    dit = [0 diff(structlvl)];
+    if sum(dit(index)>1)==0
+        ii = strindex; %This is just to update the end of struct
     end
-    
-    if isempty(value) && ~instruct %it is extended underneath
-        instruct = true;
-        continue;
+end
+
+%Now we have our stripped data and we know the structlevels, we go get the data
+results = createStruct(data,1,key,structlvl);
+end
+
+
+
+
+function [results,ii,structlvl] = createStruct(data,ii,key,structlvl)
+%If we just entered this function, we want to reset some values
+lstnr = 0;
+results = struct();
+lst.bool= false;
+lst.structlvl=[];
+lst.data=[];
+
+%This is the current object level. Important to track if we go down or back
+%up one level in the struct
+objlevel=structlvl(ii);
+
+%Loop through all the lines
+while ii<length(data)
+
+    %Extract this line
+    thisLine = data{ii};
+
+    %Go back out of the function if we need to go back up one level
+    if ii>1
+        if structlvl(ii) < objlevel
+            return;
+        end
     end
-    
-    if instruct
-        j = 0; value = [];
-        while instruct && (i+j)<=numel(data)
-            if startsWith(data{i+j},"  -") % if it is an array
-                % find the seperator between key and value
-                sepIndex = find(data{i+j}=='-', 1, 'first');
-                array = strsplit(data{i+j}(sepIndex+2:end), '#');
-                array = strtrim(array{1});
-                value(j+1,:) = str2num(array);
-                j = j+1;
-                %         else %If it is not an array, the field is a subfield
-                %             sepIndex = find(data{i+j}==':', 1, 'first');
-                %             fn = strtrim(data{i+j}(3:sepIndex-1));
-            else
-                instruct = false;
-            end       
+
+    Ijustgotbackup = 0;
+    %Check if we go down one level
+    if ii>1 && structlvl(ii)>objlevel
+        %Here we go down one level into the struct
+        [value,ii,structlvl] = createStruct(data,ii,key,structlvl);
+
+        %Here we just went back up, and we check if the value we got is
+        %numeric (in case our list was a matrix for example)
+        try
+            if isnumeric(cell2mat(value))
+            value = cell2mat(value);
+            end
+        catch
+            value = value;
         end
-        i = i+j-1;
-    elseif contains(value,'"') % check if the value is a string
-        %Strings are always stored in cell, for easy hdf5 attr conversion 
-        if contains(value,'[')% check if the string is a string array
-            value = strsplit(erase(value,{'[',']','"'}),', ')';
-        else
-            value = cellstr(erase(value,'"')); 
-        end
+        Ijustgotbackup=1;
     else
-        % attempt to convert value to numeric type
+        %If we do not go down one level, we want to get some info from this line
+        [key,value,flag,lst,lstnr,structlvl] = KeyValueFlag(thisLine,data,ii,lst,lstnr,structlvl,key);
+        ii=ii+1;
+    end
+
+    %Write the data to the struct
+    if Ijustgotbackup %in this case we just got back up one level
+        if lst.bool %If I was building a list on this level, I should assign whatever I just got as value, to my list
+            lst.data{lstnr}.(key{1}) = value; %Key is the key I had when I went down, so that is where I assign it
+            results = lst.data; %And then I can update the result with my updated list
+        elseif flag %In this case, I got just back up, and I was not writing a list on this level, so I can direcltly assign my value to the key I had
+            keycell = cellstr(key);
+            results = setfield(results,keycell{:},value);
+        end
+    elseif flag %In this case, we did not just got up, but we're gonna write the value to the given key
+        keycell = cellstr(key);
+        results = setfield(results,keycell{:},value);
+    elseif lst.bool %in this case we did not go up, but we're bulding a list, so I'm saving the whole list in each step to the output
+        results= lst.data;
+    end
+end
+end
+
+
+
+
+
+
+function [key,value,flag,lst,lstnr,structlvl] = KeyValueFlag(thisLine,data,ii,lst,lstnr,structlvl,key)
+if startsWith(thisLine,"|")
+    %Paragraphs of text are not yet supported
+elseif startsWith(strtrim(thisLine),"- ") || lst.bool
+    if ~lst.bool
+        lst.structlvl = structlvl(ii); 
+        lst.bool = true; %boolean for list
+    end       
+
+    if  startsWith(strtrim(thisLine),"- ")
+        lstnr = lstnr+1; %only in this case we go to a new item on the list
+
+        % find the seperator between key and value
+        sepIndex = find(data{ii}=='-', 1, 'first');
+        array = strsplit(data{ii}(sepIndex+2:end), '#');
+        array = strtrim(array{1});
+
+        if startsWith(array,'[')
+            valarr = GetArr(array);
+
+            % attempt to convert value to numeric type
+            if isnumeric(cell2mat(valarr))
+                valarr = cell2mat(valarr);
+            end
+            flag = false;
+            value = [];
+            lst.data{lstnr,1}=valarr;
+        elseif contains(array,':') %in this we have an array of objects
+            [key,value] = LineToKeyValue(array);
+            flag = false;
+            lst.data{lstnr}.(key{1})=value;
+        end
+        
+    elseif contains(thisLine,':') %in this we have an array of objects
+        [key,value] = LineToKeyValue(thisLine);
+        flag = false; 
+        lst.data{lstnr}.(key{1})=value;
+    end    
+else
+    [key,value] = LineToKeyValue(thisLine);
+    
+    if isempty(value)
+       % In this case, the value is empty, we're entering one way deeper
+       value = value;        
+    elseif  startsWith(value,'[')
+        % In this case, the value is an array
+        value = GetArr(value);
+    else
+        %In this case, the value is a string
+        value = cellstr(erase(value,'"'));
+    end
+
+    try
         [convertedValue, success] = str2num(value);
         if success
             value = convertedValue;
         end
+    catch
+        value= value;
     end
-    
-    % store the key and value in the results
-    results.(key) = value;
+
+    flag = true;
+end
+end
+
+
+function [valarr] = GetArr(array)
+%This function loops through all the data of an array and writes it to its
+%associated data file (string, numeric, etc.)
+aridx = 1;
+string = false;
+stridx(1) = 2;
+for ia = 1:length(array) %Let's loop through the array
+    if array(ia) =='"' && ~string
+        string = true; %Beginning of string detected
+    elseif array(ia) =='"' && string
+        string = false; %End of string detected
+    end
+    if (array(ia) =="," || array(ia) =="]") && ~string %End of array element
+        aridx=aridx+1;
+        stridx(aridx) = ia; %seperation index
+        if aridx==2
+            valarr{1,aridx-1}=array(stridx(aridx-1):stridx(aridx)-1);
+        else
+            valarr{1,aridx-1}=array(stridx(aridx-1)+2:stridx(aridx)-1);
+        end
+        if ~isnan(str2double(valarr{aridx-1}))
+            valarr{1,aridx-1} = str2double(valarr{aridx-1});
+        else
+            valarr{1,aridx-1} = erase(valarr{1,aridx-1},["'",'"']);
+        end
+    end
+end
+end
+
+function [key,value] = LineToKeyValue(thisLine)
+%This function is called when we know the line has a key, value pair and we
+%want to seperate the key from the value and store them in their associated
+%arrays
+% find the seperator between key and value
+sepIndex = find(thisLine==':', 1, 'first');
+
+% get the key name (remove whitespace)
+% key{structlvl(ii)} = strtrim(thisLine(1:sepIndex-1));
+key{1} = strtrim(thisLine(1:sepIndex-1));
+
+% get the value, ignoring any comments (remove whitespace)
+value = strsplit(thisLine(sepIndex+1:end), '#');
+value = strtrim(value{1});
+
 end
