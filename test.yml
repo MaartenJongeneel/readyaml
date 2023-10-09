@@ -1,4 +1,9 @@
 
+shopping_list:
+  - tea
+  - milk
+  - coffee
+
 #Comments begin with the number sign (#), can start anywhere on a line and continue until the end of the line. 
 #Comments must be separated from other tokens by whitespace characters. If # characters appear inside of a string, then they are number sign (#) literals.
 
@@ -7,6 +12,7 @@
 list:
   - ["Item 1", "Item2"]
   - ["Item 3", "Item3"]
+  - [name, age, skills]: [John, 34, a lot of things]
 employees:
   - name: John Smith
     age: 33

@@ -142,30 +142,51 @@ elseif startsWith(strtrim(thisLine),"- ") || lst.bool
     end       
 
     if  startsWith(strtrim(thisLine),"- ")
-        lstnr = lstnr+1; %only in this case we go to a new item on the list
-
-        % find the seperator between key and value
+        lstnr = lstnr+1; %only in this case we go to a new item on the list   
+        
+        % Trim the line to only the data
         sepIndex = find(data{ii}=='-', 1, 'first');
         array = strsplit(data{ii}(sepIndex+2:end), '#');
         array = strtrim(array{1});
 
         if startsWith(array,'[')
-            valarr = GetArr(array);
+            %Arrays like - [john, Martin], but also - [name, age]: [Rae Smith, 4] 
 
-            % attempt to convert value to numeric type
-            if isnumeric(cell2mat(valarr))
-                valarr = cell2mat(valarr);
+            if contains(array,']: [')
+                %In this case we have a situation like - [name, age]: [Rae Smith, 4]
+                %Get the seperation index
+                sepIndex = find(array==':', 1, 'first');
+                key = GetArr(strtrim(array(1:sepIndex-1)));
+                value = GetArr(strtrim(array(sepIndex+1:end)));
+
+                if length(key)~=length(value); error(append('Number of keys and values not equal in line: ',array)); end
+                for ll = 1:length(key); lst.data{lstnr}.(key{ll})=value{ll}; end
+            else
+                %In this case we have an ordinary array like - [john, Martin]
+                valarr = GetArr(array);
+    
+                % attempt to convert value to numeric type
+                if isnumeric(cell2mat(valarr))
+                    valarr = cell2mat(valarr);
+                end
+                value = [];
+                lst.data{lstnr,1}=valarr;
             end
-            flag = false;
-            value = [];
-            lst.data{lstnr,1}=valarr;
-        elseif contains(array,':') %in this we have an array of objects
+        elseif startsWith(array,'{')
+            %Inline blocks link - {name: John Smith, age: 33}
+
+        elseif contains(array,':')
+            %array of objects like - name: john
             [key,value] = LineToKeyValue(array);
-            flag = false;
             lst.data{lstnr}.(key{1})=value;
+        else
+            %In this case we have an ordinary list - John
+            value = [];
+            lst.data{lstnr} = array;
         end
+        flag = false;
         
-    elseif contains(thisLine,':') %in this we have an array of objects
+    elseif contains(thisLine,':') %in this we have a key:value situation
         [key,value] = LineToKeyValue(thisLine);
         flag = false; 
         lst.data{lstnr}.(key{1})=value;

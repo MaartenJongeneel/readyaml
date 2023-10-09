@@ -38,6 +38,67 @@ test:
 # Testing
 We have provide a `test.yml` file, that that can be used to test out the function. It contains some comments, objects, lists, numerical arrays, and matrices to show what can be stored. 
 
+# Posibilities
+Current form of the yaml parcer supports the following:
+- Ordinary comments
+  ```yaml
+  #ordinary comments can start anywhere on a line
+  ```
+- Key value pairs
+  ```yaml
+  key: value
+  ```
+- Lower levels key value pairs
+  ```yaml
+  person:
+    name: John
+    age: 34
+  ```
+- Ordinary lists
+  ```yaml
+  person:
+    - John
+    - Rae
+  ```
+- Lists with nested objects
+  ```yaml
+  persons:
+    - name: John
+      age: 34
+    - name: Rae
+      age: 4
+  ```
+- Sequences of keys like
+  ```yaml 
+  person:
+    - [name, age]: [Rae Smith, 4] 
+    - [name, age]: [John, 34] 
+  ```
+- Matrices (list of numerical arrays)
+  ```yaml
+  matrix:
+    - [0, 1, 2]
+    - [3, 4, 5]
+    - [6, 7, 8]
+  ```
+- List with objects that contain list of objects etc.
+  ```yaml
+  example:
+  - martin:
+      name: Martin D'vloper
+      job: Developer
+      skills:
+        - python: good
+        - perl: good
+        - pascal: moderate
+  - tabitha:
+      name: Tabitha Bitumen
+      job: Developer
+      skills:
+        - lisp: good
+        - fortran: moderate
+        - erlang: novice
+  ```
 # To Do
 In current form, the following components are still missing:
 - Possibility of inline blocks like
@@ -47,7 +108,7 @@ In current form, the following components are still missing:
 - Multi-line strings using ```|``` and ```>``` characters 
     ```yaml
     data: |
-      There once was a tall man from Ealing
+      There once was > [] a tall man from Ealing
       Who got on a bus to Darjeeling
           It said on the door
           "Please don't sit on the floor"
@@ -61,10 +122,6 @@ In current form, the following components are still missing:
       Blank lines denote
       paragraph breaks
    ```
-- Sequences of keys like
-    ```yaml 
-    [name, age]: [Rae Smith, 4] 
-    ```
 - Node anchors (using ```&```) and references (using ```*```)
     ```yaml
     - step:  &id001                  # defines anchor label &id001
