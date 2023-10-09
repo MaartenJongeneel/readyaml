@@ -1,6 +1,8 @@
 # readyaml
 MATLAB function to read yaml files. Outputs result into struct.
 
+[![View readyaml on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/136369-readyaml)
+
 # Installation
 clone this repository by typing in your command window:
 ```bash
