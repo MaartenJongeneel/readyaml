@@ -86,27 +86,29 @@ Current form of the yaml parcer supports the following:
 - List with objects that contain list of objects etc.
   ```yaml
   example:
-  - martin:
-      name: Martin D'vloper
-      job: Developer
-      skills:
-        - python: good
-        - perl: good
-        - pascal: moderate
-  - tabitha:
-      name: Tabitha Bitumen
-      job: Developer
-      skills:
-        - lisp: good
-        - fortran: moderate
-        - erlang: novice
+    - martin:
+        name: Martin D'vloper
+        job: Developer
+        skills:
+          - python: good
+          - perl: good
+          - pascal: moderate
+    - tabitha:
+        name: Tabitha Bitumen
+        job: Developer
+        skills:
+          - lisp: good
+          - fortran: moderate
+          - erlang: novice
   ```
-# To Do
-In current form, the following components are still missing:
 - Possibility of inline blocks like
     ```yaml
-    {name: John Smith, age: 33}
+    example:
+      - {name: John Smith, age: 33}
+      - {name: John Doe, age: 41}
     ```
+# To Do
+In current form, the following components are still missing:
 - Multi-line strings using ```|``` and ```>``` characters 
     ```yaml
     data: |

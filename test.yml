@@ -1,13 +1,13 @@
 
+#Comments begin with the number sign (#), can start anywhere on a line and continue until the end of the line. 
+#Comments must be separated from other tokens by whitespace characters. If # characters appear inside of a string, then they are number sign (#) literals.
+
+#List members are denoted by a leading hyphen (-) with one member per line.
 shopping_list:
   - tea
   - milk
   - coffee
 
-#Comments begin with the number sign (#), can start anywhere on a line and continue until the end of the line. 
-#Comments must be separated from other tokens by whitespace characters. If # characters appear inside of a string, then they are number sign (#) literals.
-
-#List members are denoted by a leading hyphen (-) with one member per line.
 #A list can also be specified by enclosing text in square brackets ([...]) with each entry separated by a comma. Example below
 list:
   - ["Item 1", "Item2"]
@@ -18,6 +18,12 @@ employees:
     age: 33
   - name: John Doe,
     age: 41
+
+#There is the possibility to have inline blocks like
+example2:
+  - {name: John Smith, age: 33}
+  - {name: John Doe, age: 41}
+  - ["Item 1", "Item2"]
 
 #YAML requires the colon be followed by a space so that url-style strings like http://www.wikipedia.org 
 #can be represented without needing to be enclosed in quotes.

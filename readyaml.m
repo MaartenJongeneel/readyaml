@@ -160,7 +160,7 @@ elseif startsWith(strtrim(thisLine),"- ") || lst.bool
                 value = GetArr(strtrim(array(sepIndex+1:end)));
 
                 if length(key)~=length(value); error(append('Number of keys and values not equal in line: ',array)); end
-                for ll = 1:length(key); lst.data{lstnr}.(key{ll})=value{ll}; end
+                for ll = 1:length(key); lst.data{lstnr,1}.(key{ll})=value{ll}; end
             else
                 %In this case we have an ordinary array like - [john, Martin]
                 valarr = GetArr(array);
@@ -174,15 +174,22 @@ elseif startsWith(strtrim(thisLine),"- ") || lst.bool
             end
         elseif startsWith(array,'{')
             %Inline blocks link - {name: John Smith, age: 33}
+            sepIndex1 = find(array=='{', 1, 'first');
+            sepIndex2 = find(array=='}', 1, 'last');
+            valarr = GetArr(array);
+            for ll = 1:length(valarr)
+                [key,value] = LineToKeyValue(valarr{ll});
+                lst.data{lstnr,1}.(key{1})=value;
+            end
 
         elseif contains(array,':')
             %array of objects like - name: john
             [key,value] = LineToKeyValue(array);
-            lst.data{lstnr}.(key{1})=value;
+            lst.data{lstnr,1}.(key{1})=value;
         else
             %In this case we have an ordinary list - John
             value = [];
-            lst.data{lstnr} = array;
+            lst.data{lstnr,1} = array;
         end
         flag = false;
         
@@ -231,7 +238,7 @@ for ia = 1:length(array) %Let's loop through the array
     elseif array(ia) =='"' && string
         string = false; %End of string detected
     end
-    if (array(ia) =="," || array(ia) =="]") && ~string %End of array element
+    if (array(ia) =="," || array(ia) =="]" || ia==length(array)) && ~string %End of array element
         aridx=aridx+1;
         stridx(aridx) = ia; %seperation index
         if aridx==2
