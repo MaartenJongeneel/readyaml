@@ -1,7 +1,7 @@
 function results = readyaml(filePath)
 % readyaml() reads out YAML files and writes the data to a struct
 %
-% Syntax:  PlotFrame('myyamlfile.yaml')
+% Syntax:  readyaml('myyamlfile.yaml')
 %
 % Inputs:
 %    filepath        - string or char that gives the path to the yaml file
