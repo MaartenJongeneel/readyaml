@@ -263,14 +263,14 @@ elseif startsWith(value,"|")
     %             text
 elseif startsWith(value,'>')
     %Paragraphs of text folded styel
-elseif contains(value,'"') 
+elseif startsWith(value,'"') && endsWith(value,'"')
     %In this case, the value is a string, which we store in a cell to be
     %easily compatible with HDF5 format.
-    value = (erase(value,'"'));
-elseif contains(value,"'")
+    value = value(2:end-1);
+elseif startsWith(value,"'") && endsWith(value,"'")
      %In this case, the value is a string, which we store in a cell to be
     %easily compatible with HDF5 format.
-    value = (erase(value,"'"));
+    value = value(2:end-1);
 end
 
 try
