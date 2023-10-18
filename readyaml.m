@@ -134,6 +134,7 @@ end
 
 function [key,value,flag,lst,lstnr,structlvl] = KeyValueFlag(thisLine,data,ii,lst,lstnr,structlvl,key)
 if startsWith(strtrim(thisLine),"- ") || lst.bool
+    %In this case we are in a list
     if ~lst.bool
         lst.structlvl = structlvl(ii); 
         lst.bool = true; %boolean for list
@@ -183,9 +184,6 @@ if startsWith(strtrim(thisLine),"- ") || lst.bool
         elseif contains(array,':')
             %array of objects like - name: john
             [key,value] = LineToKeyValue(array);
-            if contains(value,'"')
-                value = cellstr(erase(value,'"'));
-            end
             lst.data{lstnr,1}.(key{1})=value;
         else
             %In this case we have an ordinary list - John
@@ -202,34 +200,6 @@ if startsWith(strtrim(thisLine),"- ") || lst.bool
 else
     [key,value] = LineToKeyValue(thisLine);
     
-    if isempty(value)
-       % In this case, the value is empty, we're entering one way deeper
-       value = value;        
-    elseif  startsWith(value,'[')
-        % In this case, the value is an array
-        value = GetArr(value);
-    elseif startsWith(value,"|")
-        %Paragraphs of text literal style
-        %Check where the text ends
-%         idxend = find(structlvl(ii+1:end)==structlvl(ii),1,'first')+ii-1;
-%         for aa = 1:idxend-ii+1
-%             text
-    elseif startsWith(value,'>')
-        %Paragraphs of text folded styel
-    elseif contains(value,'"')
-        %In this case, the value is a string
-        value = cellstr(erase(value,'"'));
-    end
-
-    try
-        [convertedValue, success] = str2num(value);
-        if success
-            value = convertedValue;
-        end
-    catch
-        value= value;
-    end
-
     flag = true;
 end
 end
@@ -278,5 +248,42 @@ key{1} = strtrim(thisLine(1:sepIndex-1));
 % get the value, ignoring any comments (remove whitespace)
 value = strsplit(thisLine(sepIndex+1:end), '#');
 value = strtrim(value{1});
+
+if isempty(value)
+    % In this case, the value is empty, we will enter one way deeper
+    value = value;
+elseif  startsWith(value,'[')
+    % In this case, the value is an array
+    value = GetArr(value);
+elseif startsWith(value,"|")
+    %Paragraphs of text literal style
+    %Check where the text ends
+    %         idxend = find(structlvl(ii+1:end)==structlvl(ii),1,'first')+ii-1;
+    %         for aa = 1:idxend-ii+1
+    %             text
+elseif startsWith(value,'>')
+    %Paragraphs of text folded styel
+elseif contains(value,'"') 
+    %In this case, the value is a string, which we store in a cell to be
+    %easily compatible with HDF5 format.
+    value = (erase(value,'"'));
+elseif contains(value,"'")
+     %In this case, the value is a string, which we store in a cell to be
+    %easily compatible with HDF5 format.
+    value = (erase(value,"'"));
+end
+
+try
+    [convertedValue, success] = str2num(value);
+    if success
+        value = convertedValue;
+    end
+    if ~success && ~isempty(value)
+        %In this case value is text, and we save it as a string
+        value = (value);
+    end
+catch
+    value= value;
+end
 
 end
