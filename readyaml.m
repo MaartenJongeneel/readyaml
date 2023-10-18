@@ -133,9 +133,7 @@ end
 
 
 function [key,value,flag,lst,lstnr,structlvl] = KeyValueFlag(thisLine,data,ii,lst,lstnr,structlvl,key)
-if startsWith(thisLine,"|")
-    %Paragraphs of text are not yet supported
-elseif startsWith(strtrim(thisLine),"- ") || lst.bool
+if startsWith(strtrim(thisLine),"- ") || lst.bool
     if ~lst.bool
         lst.structlvl = structlvl(ii); 
         lst.bool = true; %boolean for list
@@ -185,6 +183,9 @@ elseif startsWith(strtrim(thisLine),"- ") || lst.bool
         elseif contains(array,':')
             %array of objects like - name: john
             [key,value] = LineToKeyValue(array);
+            if contains(value,'"')
+                value = cellstr(erase(value,'"'));
+            end
             lst.data{lstnr,1}.(key{1})=value;
         else
             %In this case we have an ordinary list - John
@@ -207,7 +208,15 @@ else
     elseif  startsWith(value,'[')
         % In this case, the value is an array
         value = GetArr(value);
-    else
+    elseif startsWith(value,"|")
+        %Paragraphs of text literal style
+        %Check where the text ends
+%         idxend = find(structlvl(ii+1:end)==structlvl(ii),1,'first')+ii-1;
+%         for aa = 1:idxend-ii+1
+%             text
+    elseif startsWith(value,'>')
+        %Paragraphs of text folded styel
+    elseif contains(value,'"')
         %In this case, the value is a string
         value = cellstr(erase(value,'"'));
     end
