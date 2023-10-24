@@ -1,6 +1,26 @@
 
-#Comments begin with the number sign (#), can start anywhere on a line and continue until the end of the line. 
-#Comments must be separated from other tokens by whitespace characters. If # characters appear inside of a string, then they are number sign (#) literals.
+#Comments begin with the number sign (#), can start anywhere on a line and continue until
+#the end of the line. Comments must be separated from other tokens by whitespace characters. 
+#If characters appear inside of a string, then they are number sign (#) literals.
+
+#Scalar content can be written in block notation, using a literal style (indicated by “|”) 
+#where all line breaks are significant. Alternatively, they can be written with the folded 
+#style (denoted by “>”) where each line break is folded to a space unless it ends an empty 
+#or a more-indented line.
+# data: |
+#   There once was > [] a tall man from Ealing
+#   Who got on a bus to Darjeeling
+#       It said on the door
+#       "Please don't sit on the floor"
+#   So he carefully sat on the ceiling
+# data: >
+#   Wrapped text
+#   will be folded
+#   into a single
+#   paragraph
+
+#   Blank lines denote
+#   paragraph breaks
 
 #List members are denoted by a leading hyphen (-) with one member per line.
 shopping_list:
@@ -8,7 +28,8 @@ shopping_list:
   - milk
   - coffee
 
-#A list can also be specified by enclosing text in square brackets ([...]) with each entry separated by a comma. Example below
+#A list can also be specified by enclosing text in square brackets ([...]) with each entry
+#separated by a comma. Example below
 list:
   - ["Item 1", "Item2"]
   - ["Item 3", "Item3"]
@@ -16,31 +37,36 @@ list:
 employees:
   - name: John Smith
     age: 33
-  - name: John Doe,
+  - name: John Doe
     age: 41
 
-#There is the possibility to have inline blocks like
+#An associative array can also be specified by text enclosed in curly braces ({...}), with
+#keys separated from values by colon and the entries separated by commas (spaces are not 
+#required to retain compatibility with JSON).
 example2:
   - {name: John Smith, age: 33}
   - {name: John Doe, age: 41}
   - ["Item 1", "Item2"]
 
-#YAML requires the colon be followed by a space so that url-style strings like http://www.wikipedia.org 
-#can be represented without needing to be enclosed in quotes.
+#YAML requires the colon be followed by a space so that url-style strings like 
+#http://www.wikipedia.org can be represented without needing to be enclosed in quotes.
 website: http://www.wikipedia.org
 
-#Strings (one type of scalar in YAML) are ordinarily unquoted, but may be enclosed in double-quotes ("), or single-quotes ('). 
+#Strings (one type of scalar in YAML) are ordinarily unquoted, but may be enclosed in double
+#-quotes ("), or single-quotes ('). 
 stringtest: 
   example1: So this should be a string
   example2: "but this should be a string as well"
   example3: 'and this too'
+  example4: and I'd think that it can have any > type | of character ...
 
 #Lists of numerical arrays will automatically be converted to matrices
 test:
   matrix:
     - [0, 1, 2]
     - [3, 4, 5]
-    - [6, 7, 8]    
+    - [6, 7, 8]  
+  array: [0, 1, 2]  
   now:
     what:
       if:
@@ -72,12 +98,7 @@ test:
         - erlang: novice
 
 #TO DO
-#An associative array can also be specified by text enclosed in curly braces ({...}), with keys separated from values by 
-#colon and the entries separated by commas (spaces are not required to retain compatibility with JSON).
-# example2:
-#   - {name: John Smith, age: 33}
-#   - {name: John Doe, age: 41}
-  
+ 
 # #Multiple documents within a single stream are separated by three hyphens (---). 
 # ---
 # Test:

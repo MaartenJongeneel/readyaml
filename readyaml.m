@@ -163,11 +163,6 @@ if startsWith(strtrim(thisLine),"- ") || lst.bool
             else
                 %In this case we have an ordinary array like - [john, Martin]
                 valarr = GetArr(array);
-    
-                % attempt to convert value to numeric type
-                if isnumeric(cell2mat(valarr))
-                    valarr = cell2mat(valarr);
-                end
                 value = [];
                 lst.data{lstnr,1}=valarr;
             end
@@ -231,6 +226,13 @@ for ia = 1:length(array) %Let's loop through the array
             valarr{1,aridx-1} = erase(valarr{1,aridx-1},["'",'"']);
         end
     end
+end
+% attempt to convert value to numeric type
+try
+    if isnumeric(cell2mat(valarr))
+        valarr = cell2mat(valarr);
+    end
+catch
 end
 end
 
