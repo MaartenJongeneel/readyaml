@@ -145,7 +145,7 @@ if startsWith(strtrim(thisLine),"- ") || lst.bool
         
         % Trim the line to only the data
         sepIndex = find(data{ii}=='-', 1, 'first');
-        array = strsplit(data{ii}(sepIndex+2:end), '#');
+        array = strsplit(data{ii}(sepIndex+2:end), ' #');
         array = strtrim(array{1});
 
         if startsWith(array,'[')
@@ -248,7 +248,7 @@ sepIndex = find(thisLine==':', 1, 'first');
 key{1} = strtrim(thisLine(1:sepIndex-1));
 
 % get the value, ignoring any comments (remove whitespace)
-value = strsplit(thisLine(sepIndex+1:end), '#');
+value = strsplit(thisLine(sepIndex+1:end), ' #');
 value = strtrim(value{1});
 
 if isempty(value)

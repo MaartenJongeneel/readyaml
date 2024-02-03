@@ -59,7 +59,9 @@ stringtest:
   example2: "but this should be a string as well"
   example3: 'and this too'
   example4: and I'd think that it can have any > type | of character ...
-
+  example5: '#dfdfd' and hello's '#000000' "'hello'#test"  #test
+  example6: "#ff9d9d" #inline comment
+  
 #Lists of numerical arrays will automatically be converted to matrices
 test:
   matrix:
